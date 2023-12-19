@@ -1,15 +1,12 @@
-// SPDX-License-Identifier: MIT
-
-pragma solidity 0.8.20;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity ^0.8.14;
 
 import "./FixedPoint96.sol";
 import "./PRBMath.sol";
 
 library Math {
-    
-    //            L · (sqrtPriceUpperTick - sqrtCurrentPrice)
-    //      Δx = ---------------------------------------------
-    //               sqrtPriceUpperTick · sqrtCurrentPrice
+    /// @notice Calculates amount0 delta between two prices
+    /// TODO: round down when removing liquidity
     function calcAmount0Delta(
         uint160 sqrtPriceAX96,
         uint160 sqrtPriceBX96,
@@ -30,7 +27,8 @@ library Math {
         );
     }
 
-    //      Δy = L · (sqrtCurrentPrice - sqrtPriceLowerTick)
+    /// @notice Calculates amount1 delta between two prices
+    /// TODO: round down when removing liquidity
     function calcAmount1Delta(
         uint160 sqrtPriceAX96,
         uint160 sqrtPriceBX96,

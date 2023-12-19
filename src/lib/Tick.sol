@@ -1,13 +1,15 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity ^0.8.14;
 
-pragma solidity 0.8.20;
-
-import {LiquidityMath} from "./LiquidityMath.sol";
+import "./LiquidityMath.sol";
+import "./Math.sol";
 
 library Tick {
-    struct Info{
+    struct Info {
         bool initialized;
+        // total liquidity at tick
         uint128 liquidityGross;
+        // amount of liqudiity added or subtracted when tick is crossed
         int128 liquidityNet;
     }
 

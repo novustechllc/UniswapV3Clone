@@ -1,9 +1,8 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity ^0.8.14;
 
-pragma solidity 0.8.20;
-
-import {UniswapV3Pool} from "./UniswapV3Pool.sol";
-import {TickMath} from "./lib/TickMath.sol";
+import "./interfaces/IUniswapV3Pool.sol";
+import "./lib/TickMath.sol";
 
 contract UniswapV3Quoter {
     struct QuoteParams {
@@ -22,7 +21,7 @@ contract UniswapV3Quoter {
         )
     {
         try
-            UniswapV3Pool(params.pool).swap(
+            IUniswapV3Pool(params.pool).swap(
                 address(this),
                 params.zeroForOne,
                 params.amountIn,
@@ -51,7 +50,7 @@ contract UniswapV3Quoter {
             ? uint256(-amount1Delta)
             : uint256(-amount0Delta);
 
-        (uint160 sqrtPriceX96After, int24 tickAfter) = UniswapV3Pool(pool)
+        (uint160 sqrtPriceX96After, int24 tickAfter) = IUniswapV3Pool(pool)
             .slot0();
 
         assembly {
@@ -62,5 +61,4 @@ contract UniswapV3Quoter {
             revert(ptr, 96)
         }
     }
-
 }

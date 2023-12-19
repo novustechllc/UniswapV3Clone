@@ -1,31 +1,20 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.14;
 
-pragma solidity 0.8.20;
+import "./interfaces/IERC20.sol";
+import "./interfaces/IUniswapV3Pool.sol";
+import "./interfaces/IUniswapV3Manager.sol";
+import "./lib/LiquidityMath.sol";
+import "./lib/TickMath.sol";
 
-import {LiquidityMath} from "./lib/LiquidityMath.sol";
-import {TickMath} from "./lib/TickMath.sol";
-import {UniswapV3Pool} from "./UniswapV3Pool.sol";
-import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-
-contract UniswapV3Manager {
-
+contract UniswapV3Manager is IUniswapV3Manager {
     error SlippageCheckFailed(uint256 amount0, uint256 amount1);
-
-    struct MintParams {
-        address poolAddress;
-        int24 lowerTick;
-        int24 upperTick;
-        uint256 amount0Desired;
-        uint256 amount1Desired;
-        uint256 amount0Min;
-        uint256 amount1Min;
-    }
 
     function mint(MintParams calldata params)
         public
         returns (uint256 amount0, uint256 amount1)
     {
-        UniswapV3Pool pool = UniswapV3Pool(params.poolAddress);
+        IUniswapV3Pool pool = IUniswapV3Pool(params.poolAddress);
 
         (uint160 sqrtPriceX96, ) = pool.slot0();
         uint160 sqrtPriceLowerX96 = TickMath.getSqrtRatioAtTick(
@@ -49,7 +38,7 @@ contract UniswapV3Manager {
             params.upperTick,
             liquidity,
             abi.encode(
-                UniswapV3Pool.CallbackData({
+                IUniswapV3Pool.CallbackData({
                     token0: pool.token0(),
                     token1: pool.token1(),
                     payer: msg.sender
@@ -57,9 +46,8 @@ contract UniswapV3Manager {
             )
         );
 
-        if (amount0 < params.amount0Min || amount1 < params.amount1Min){
+        if (amount0 < params.amount0Min || amount1 < params.amount1Min)
             revert SlippageCheckFailed(amount0, amount1);
-        }
     }
 
     function swap(
@@ -70,7 +58,7 @@ contract UniswapV3Manager {
         bytes calldata data
     ) public returns (int256, int256) {
         return
-            UniswapV3Pool(poolAddress_).swap(
+            IUniswapV3Pool(poolAddress_).swap(
                 msg.sender,
                 zeroForOne,
                 amountSpecified,
@@ -90,9 +78,9 @@ contract UniswapV3Manager {
         uint256 amount1,
         bytes calldata data
     ) public {
-        UniswapV3Pool.CallbackData memory extra = abi.decode(
+        IUniswapV3Pool.CallbackData memory extra = abi.decode(
             data,
-            (UniswapV3Pool.CallbackData)
+            (IUniswapV3Pool.CallbackData)
         );
 
         IERC20(extra.token0).transferFrom(extra.payer, msg.sender, amount0);
@@ -104,9 +92,9 @@ contract UniswapV3Manager {
         int256 amount1,
         bytes calldata data
     ) public {
-        UniswapV3Pool.CallbackData memory extra = abi.decode(
+        IUniswapV3Pool.CallbackData memory extra = abi.decode(
             data,
-            (UniswapV3Pool.CallbackData)
+            (IUniswapV3Pool.CallbackData)
         );
 
         if (amount0 > 0) {

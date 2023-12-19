@@ -1,7 +1,10 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-2.0-or-later
+pragma solidity ^0.8.14;
 
-pragma solidity 0.8.20;
-
-interface IUniswapV3SwapCallback{
-    function uniswapV3SwapCallback(int256 amount0, int256 amount1, bytes memory data) external;
+interface IUniswapV3SwapCallback {
+    function uniswapV3SwapCallback(
+        int256 amount0,
+        int256 amount1,
+        bytes calldata data
+    ) external;
 }
