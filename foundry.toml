@@ -2,7 +2,7 @@
 src = "src"
 out = "out"
 libs = ["lib"]
-remappings = ["@openzeppelin=lib/openzeppelin-contracts"]
+remappings = ["@openzeppelin=lib/openzeppelin-contracts", "@bytes-utils=lib/solidity-bytes-utils"]
 
 [fuzz]
 runs = 500
