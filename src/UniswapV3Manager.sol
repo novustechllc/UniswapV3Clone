@@ -21,25 +21,46 @@ contract UniswapV3Manager is IUniswapV3Manager {
         factory = factory_;
     }
 
+    function getPosition(GetPositionParams calldata params)
+        public
+        view
+        returns(
+            uint128 liquidity,
+            uint256 feeGrowthInside0LastX128,
+            uint256 feeGrowthInside1LastX128,
+            uint128 tokensOwed0,
+            uint128 tokensOwed1
+        )
+    {
+        IUniswapV3Pool pool = getPool(params.tokenA, params.tokenB, params.fee);
+
+        (
+            liquidity,
+            feeGrowthInside0LastX128,
+            feeGrowthInside1LastX128,
+            tokensOwed0,
+            tokensOwed1
+        ) = pool.positions(
+            keccak256(
+                abi.encodePacked(
+                    params.owner,
+                    params.lowerTick,
+                    params.upperTick
+                )
+            )
+        );
+    }
+
     function mint(MintParams calldata params)
         public
         returns (uint256 amount0, uint256 amount1)
     {
-        address poolAddress = PoolAddress.computeAddress(
-            factory,
-            params.tokenA,
-            params.tokenB,
-            params.tickSpacing
-        );
-        IUniswapV3Pool pool = IUniswapV3Pool(poolAddress);
+        IUniswapV3Pool pool = getPool(params.tokenA, params.tokenB, params.fee);
 
         (uint160 sqrtPriceX96, ) = pool.slot0();
-        uint160 sqrtPriceLowerX96 = TickMath.getSqrtRatioAtTick(
-            params.lowerTick
-        );
-        uint160 sqrtPriceUpperX96 = TickMath.getSqrtRatioAtTick(
-            params.upperTick
-        );
+
+        uint160 sqrtPriceLowerX96 = TickMath.getSqrtRatioAtTick(params.lowerTick);
+        uint160 sqrtPriceUpperX96 = TickMath.getSqrtRatioAtTick(params.upperTick);
 
         uint128 liquidity = LiquidityMath.getLiquidityForAmounts(
             sqrtPriceX96,
@@ -63,8 +84,9 @@ contract UniswapV3Manager is IUniswapV3Manager {
             )
         );
 
-        if (amount0 < params.amount0Min || amount1 < params.amount1Min)
-            revert SlippageCheckFailed(amount0, amount1);
+        if(amount0 < params.amount0Min || amount1 < params.amount1Min){
+            revert SlippageCheckFailed(amount1, amount1);
+        }
     }
 
     function swapSingle(SwapSingleParams calldata params)
@@ -78,7 +100,7 @@ contract UniswapV3Manager is IUniswapV3Manager {
             SwapCallbackData({
                 path: abi.encodePacked(
                     params.tokenIn,
-                    params.tickSpacing,
+                    params.fee,
                     params.tokenOut
                 ),
                 payer: msg.sender

@@ -12,7 +12,7 @@ contract UniswapV3Quoter {
     struct QuoteSingleParams {
         address tokenIn;
         address tokenOut;
-        uint24 tickSpacing;
+        uint24 fee;
         uint256 amountIn;
         uint160 sqrtPriceLimitX96;
     }
@@ -36,8 +36,7 @@ contract UniswapV3Quoter {
 
         uint256 i = 0;
         while (true) {
-            (address tokenIn, address tokenOut, uint24 tickSpacing) = path
-                .decodeFirstPool();
+            (address tokenIn, address tokenOut, uint24 fee) = path.decodeFirstPool();
 
             (
                 uint256 amountOut_,
@@ -47,7 +46,7 @@ contract UniswapV3Quoter {
                     QuoteSingleParams({
                         tokenIn: tokenIn,
                         tokenOut: tokenOut,
-                        tickSpacing: tickSpacing,
+                        fee: fee,
                         amountIn: amountIn,
                         sqrtPriceLimitX96: 0
                     })
@@ -78,7 +77,7 @@ contract UniswapV3Quoter {
         IUniswapV3Pool pool = getPool(
             params.tokenIn,
             params.tokenOut,
-            params.tickSpacing
+            params.fee
         );
 
         bool zeroForOne = params.tokenIn < params.tokenOut;
@@ -128,13 +127,13 @@ contract UniswapV3Quoter {
     function getPool(
         address token0,
         address token1,
-        uint24 tickSpacing
+        uint24 fee
     ) internal view returns (IUniswapV3Pool pool) {
         (token0, token1) = token0 < token1
             ? (token0, token1)
             : (token1, token0);
         pool = IUniswapV3Pool(
-            PoolAddress.computeAddress(factory, token0, token1, tickSpacing)
+            PoolAddress.computeAddress(factory, token0, token1, fee)
         );
     }
 }
